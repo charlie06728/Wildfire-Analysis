@@ -217,10 +217,12 @@ class FireQueue(PriorityQueue):
         end_month = self._items[-1][0].month
 
         months = (end_year - start_year) * 12 + end_month - start_month + 1
-        for _ in range(months):
+        for i in range(months):
             # Month range from 0 to 11 inclusive in one year
-            current_year = (months + start_month) // 13 + start_year
-            current_month = (months + start_month) % 13 + 1
+            current_year = (i + start_month) // 13 + start_year
+            current_month = (i + start_month - 1) % 12 + 1
+            # if current_month > 12:
+            #    current_month = (current_month - 1) % 12 + 1
             current_date = datetime.date(current_year, current_month, 1)
 
             dates = self._get_dates()
