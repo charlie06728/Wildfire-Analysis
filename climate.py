@@ -73,7 +73,7 @@ class WildFire:
                                   (FireEvent(current_id, current_date, current_size, current_duration)))
             except ValueError:
                 pass
-            i += 1
+            i += 50
 
         self.data.eliminate_duplicate()
         self.data.complete_timeline()
