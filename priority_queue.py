@@ -227,7 +227,8 @@ class FireQueue(PriorityQueue):
 
             dates = self._get_dates()
             if current_date not in dates:
-                self.enqueue(current_date, None)
+                self.enqueue(current_date, FireEvent(0, current_date,
+                                                     0.0, 0))
 
     def _get_dates(self) -> list:
         """Helper function"""
