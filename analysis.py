@@ -7,9 +7,109 @@ This Python file contains the analysis of models.
 This file is Copyright (c) 2020 Yuzhi Tang, Zeyang Ni, Junru Lin, and Jasmine Zhuang.
 """
 import data_prep
+from data_prep import Temperature, Precipitation, Wildfire
 import figure
 import models
 from typing import List
+
+
+class StateDataAnalysis:
+    """The analysis of a state's data.
+
+    Instance Attributes:
+      - name: the name of the state, represented by two capital letters
+      - begin: the year when the analysis begins
+      - end: the year when the analysis ends
+      - temp_max:
+      - temp_min:
+      - temp_mean:
+      - prcp:
+      - fire_freq:
+      - fire_size:
+    """
+    name: str
+    begin: int
+    end: int
+    temp_max: List[float]
+    temp_min: List[float]
+    temp_mean: List[float]
+    prcp: List[float]
+    fire_freq: List[int]
+    fire_size: List[float]
+
+    def __init__(self, name: str, begin: int, end: int, climate_file: str, wildfire_file: str) -> None:
+        """Initialize a new state data for analysis."""
+        self.name = name
+        self.begin = begin
+        self.end = end
+        temp = Temperature(name, climate_file, 'DATE', 'TAVG', 'TMAX', 'TMIN')
+        prcp = Precipitation(name, climate_file, 'DATE', 'PRCP')
+        wildfire = Wildfire(name, wildfire_file, 'STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE')
+        self.temp_max = temp.max_months(begin, end)
+        self.temp_min = temp.min_months(begin, end)
+        self.temp_mean = temp.mean_months(begin, end)
+        self.prcp = prcp.total_months(begin, end)
+        self.fire_freq = wildfire.frequency_months(begin, end)
+        self.fire_size = wildfire.mean_size_months(begin, end)
+
+    def temp_freq_exponential(self) -> None:
+        """Use exponential model to analise the relation between the temperature and wildfire frequency of the state."""
+        sub_title = ' temp-wildfire frequency of ' + self.name + ' (exponential model)'
+        analysis_exponential('max' + sub_title, 'temp(Fahrenheit)', self.temp_max, 'frequency', self.fire_freq)
+        analysis_exponential('min' + sub_title, 'temp(Fahrenheit)', self.temp_min, 'frequency', self.fire_freq)
+        analysis_exponential('mean' + sub_title, 'temp(Fahrenheit)', self.temp_mean, 'frequency', self.fire_freq)
+
+    def temp_freq_quadratic(self) -> None:
+        """Use quadratic model to analise the relation between the temperature and wildfire frequency of the state."""
+        sub_title = ' temp-wildfire frequency of ' + self.name + ' (quadratic model)'
+        analysis_quadratic('max' + sub_title, 'temp(Fahrenheit)', self.temp_max, 'frequency', self.fire_freq)
+        analysis_quadratic('min' + sub_title, 'temp(Fahrenheit)', self.temp_min, 'frequency', self.fire_freq)
+        analysis_quadratic('mean' + sub_title, 'temp(Fahrenheit)', self.temp_mean, 'frequency', self.fire_freq)
+
+    def temp_size_exponential(self) -> None:
+        """Use exponential model to analise the relation between the temperature and wildfire size of the state."""
+        sub_title = ' temp-wildfire size of ' + self.name + ' (exponential model)'
+        analysis_exponential('max' + sub_title, 'temp(Fahrenheit)', self.temp_max, 'size(acre)', self.fire_size)
+        analysis_exponential('min' + sub_title, 'temp(Fahrenheit)', self.temp_min, 'size(acre)', self.fire_size)
+        analysis_exponential('mean' + sub_title, 'temp(Fahrenheit)', self.temp_mean, 'size(acre)', self.fire_size)
+
+    def temp_size_quadratic(self) -> None:
+        """Use quadratic model to analise the relation between the temperature and wildfire size of the state."""
+        sub_title = ' temp-wildfire size of ' + self.name + ' (quadratic model)'
+        analysis_quadratic('max' + sub_title, 'temp(Fahrenheit)', self.temp_max, 'size(acre)', self.fire_size)
+        analysis_quadratic('min' + sub_title, 'temp(Fahrenheit)', self.temp_min, 'size(acre)', self.fire_size)
+        analysis_quadratic('mean' + sub_title, 'temp(Fahrenheit)', self.temp_mean, 'size(acre)', self.fire_size)
+
+    def prcp_freq_inverse(self) -> None:
+        """Use inverse model to analise the relation between the precipitation and wildfire frequency of the state"""
+        title = 'prcp-wildfire frequency of ' + self.name + ' (inverse model)'
+        analysis_inverse(title, 'prcp(mm)', self.prcp, 'frequency', self.fire_freq)
+
+    def prcp_freq_logarithm(self) -> None:
+        """Use logarithm model to analise the relation between the precipitation and wildfire frequency of the state"""
+        title = 'prcp-wildfire frequency of ' + self.name + ' (logarithm model)'
+        analysis_logarithm(title, 'prcp(mm)', self.prcp, 'frequency', self.fire_freq)
+
+    def prcp_size_inverse(self) -> None:
+        """Use inverse model to analise the relation between the precipitation and wildfire size of the state"""
+        title = 'prcp-wildfire size of ' + self.name + ' (inverse model)'
+        analysis_inverse(title, 'prcp(mm)', self.prcp, 'size(acre)', self.fire_size)
+
+    def prcp_size_logarithm(self) -> None:
+        """Use logarithm model to analise the relation between the precipitation and wildfire size of the state"""
+        title = 'prcp-wildfire size of ' + self.name + ' (logarithm model)'
+        analysis_logarithm(title, 'prcp(mm)', self.prcp, 'size(acre)', self.fire_size)
+
+    def analise_all(self) -> None:
+        """Analise all data of the state."""
+        self.temp_freq_exponential()
+        self.temp_freq_quadratic()
+        self.temp_size_exponential()
+        self.temp_size_quadratic()
+        self.prcp_freq_inverse()
+        self.prcp_freq_logarithm()
+        self.prcp_size_inverse()
+        self.prcp_size_logarithm()
 
 
 def analysis_exponential(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
@@ -44,60 +144,8 @@ def analysis_logarithm(title: str, x_label: str, x: List[float], y_label: str, y
     figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
 
 
-# Generate the data of temperature and wildfire of CA
-ca_temp = data_prep.Temperature('CA', 'ca_climate.csv', 'DATE', 'TAVG', 'TMAX', 'TMIN')
-ca_wildfire = data_prep.Wildfire('CA', 'wildfire_data2.csv', 'STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE')
-ca_prcp = data_prep.Precipitation('CA', 'ca_climate.csv', 'DATE', 'PRCP')
-
-# Set time from the year of begin to the year of end
-begin = 1994
-end = 2013
-time = figure.get_time_list(begin, end)  # get a list
-
-# temperature data
-temp_max = ca_temp.max_months(begin, end)
-temp_min = ca_temp.min_months(begin, end)
-temp_mean = ca_temp.mean_months(begin, end)
-
-# precipitation data
-prcp = ca_prcp.total_months(begin, end)
-
-# wildfire data
-fire_freq = ca_wildfire.frequency_months(begin, end)
-fire_size = ca_wildfire.mean_size_months(begin, end)
-
-# temperature - wildfire frequency
-analysis_exponential('max temp-wildfire frequency-CA (exponentialr model)',
-                     'temp(Fahrenheit)', temp_max, 'frequency', fire_freq)
-analysis_exponential('min temp-wildfire frequency-CA (exponential model)',
-                     'temp(Fahrenheit)', temp_min, 'frequency', fire_freq)
-analysis_exponential('mean temp-wildfire frequency-CA (exponential model)',
-                     'temp(Fahrenheit)', temp_mean, 'frequency', fire_freq)
-analysis_quadratic('max temp-wildfire frequency-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_max, 'frequency', fire_freq)
-analysis_quadratic('min temp-wildfire frequency-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_min, 'frequency', fire_freq)
-analysis_quadratic('mean temp-wildfire frequency-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_mean, 'frequency', fire_freq)
-
-# temperature - wildfire size
-# analysis_exponential('max temp-wildfire size-CA (exponential model)',
-#                      'temp(Fahrenheit)', temp_max, 'frequency', fire_size)
-# analysis_exponential('min temp-wildfire size-CA (exponential model)',
-#                      'temp(Fahrenheit)', temp_min, 'frequency', fire_size)
-# analysis_exponential('mean temp-wildfire size-CA exponential model)',
-#                      'temp(Fahrenheit)', temp_mean, 'frequency', fire_size)
-analysis_quadratic('max temp-wildfire size-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_max, 'frequency', fire_size)
-analysis_quadratic('min temp-wildfire size-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_min, 'frequency', fire_size)
-analysis_quadratic('mean temp-wildfire size-CA (quadratic model)',
-                   'temp(Fahrenheit)', temp_mean, 'frequency', fire_size)
-
-# precipitation - wildfire frequency
-analysis_inverse('prcp-wildfire frequency-CA (inverse model)', 'prcp(mm)', prcp, 'frequency', fire_freq)
-analysis_logarithm('prcp-wildfire frequency-CA (logarithm model)', 'prcp(mm)', prcp, 'frequency', fire_freq)
-
-# precipitation - wildfire size
-analysis_inverse('prcp-wildfire size-CA (inverse model)', 'prcp(mm)', prcp, 'size(acre)', fire_size)
-analysis_logarithm('prcp-wildfire size-CA (logarithm model)', 'prcp(mm)', prcp, 'size(acre)', fire_size)
+if __name__ == '__main__':
+    analysis_ca = StateDataAnalysis('CA', 1994, 2013, 'ca_climate.csv', 'wildfire_data2.csv')
+    analysis_ca.analise_all()
+    # analysis_tx = StateDataAnalysis('TX', 1994, 2013, 'tx_climate.csv', 'wildfire_data2.csv')
+    # analysis_tx.analise_all()
