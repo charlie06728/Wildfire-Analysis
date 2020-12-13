@@ -6,7 +6,6 @@ This Python file contains the analysis of models.
 
 This file is Copyright (c) 2020 Yuzhi Tang, Zeyang Ni, Junru Lin, and Jasmine Zhuang.
 """
-import data_prep
 from data_prep import Temperature, Precipitation, Wildfire
 import figure
 import models
