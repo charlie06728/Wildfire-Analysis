@@ -10,6 +10,7 @@ from data_prep import Temperature, Precipitation, Wildfire
 import figure
 import models
 from typing import List
+import datetime
 
 
 class StateDataAnalysis:
@@ -50,6 +51,20 @@ class StateDataAnalysis:
         self.prcp = prcp.total_months(begin, end)
         self.fire_freq = wildfire.frequency_months(begin, end)
         self.fire_size = wildfire.mean_size_months(begin, end)
+
+    def temp_time(self) -> None:
+        """Use periodic model to analise the relation between the temperature and wildfire frequency of the state."""
+        time_lag_list = generate_time_lag_list(self.begin, self.end)
+        sub_title = ' temp - time of ' + self.name + ' (periodic model)'
+        analysis_periodic('max' + sub_title, 'days', time_lag_list, 'temperature(Fahrenheit)', self.temp_max)
+        analysis_periodic('min' + sub_title, 'days', time_lag_list, 'temperature(Fahrenheit)', self.temp_min)
+        analysis_periodic('mean' + sub_title, 'days', time_lag_list, 'temperature(Fahrenheit)', self.temp_mean)
+
+    def prcp_time(self) -> None:
+        """Use periodic model to analise the relation between the precipitation and wildfire frequency of the state."""
+        time_lag_list = generate_time_lag_list(self.begin, self.end)
+        title = 'prcp - time of ' + self.name + ' (periodic model)'
+        analysis_periodic(title, 'days', time_lag_list, 'precipitation(mm)', self.prcp)
 
     def temp_freq_exponential(self) -> None:
         """Use exponential model to analise the relation between the temperature and wildfire frequency of the state."""
@@ -143,8 +158,39 @@ def analysis_logarithm(title: str, x_label: str, x: List[float], y_label: str, y
     figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
 
 
+def analysis_periodic(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
+    """Modeling between x and y using periodic model."""
+    a, b, c, d, e, rmse = models.fit_periodic(x, y)
+    print(title, ': RMSE=', rmse, a, b, c, d, e)
+    prediction_y = [models.periodic(x_i, a, b, c, d, e) for x_i in x]
+    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+
+
+def generate_date_list(begin: int, end: int) -> List[datetime.date]:
+    """Return a list of months from the year of begin to the year of end."""
+    date_list_so_far = []
+    for year in range(begin, end + 1):
+        for month in range(1, 13):
+            date = datetime.date(year, month, 1)
+            date_list_so_far.append(date)
+    return [datetime.date(year, month, 1) for month in range(1, 13) for year in range(begin, end + 1)]
+
+
+def generate_time_lag_list(begin: int, end: int) -> List[int]:
+    """Return a list of time lag between the first day of every month and the first day of the year of begin,
+     till the year of end."""
+    begin_date = datetime.date(begin, 1, 1)
+    time_lag_list_so_far = []
+    for year in range(begin, end + 1):
+        for month in range(1, 13):
+            time_lag = (datetime.date(year, month, 1) - begin_date).days
+            time_lag_list_so_far.append(time_lag)
+    return time_lag_list_so_far
+
+
 if __name__ == '__main__':
     analysis_ca = StateDataAnalysis('CA', 1994, 2013, 'ca_climate.csv', 'wildfire_data2.csv')
-    analysis_ca.analise_all()
+    analysis_ca.temp_time()
+    analysis_ca.prcp_time()
     # analysis_tx = StateDataAnalysis('TX', 1994, 2013, 'tx_climate.csv', 'wildfire_data2.csv')
     # analysis_tx.analise_all()

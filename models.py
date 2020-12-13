@@ -32,7 +32,7 @@ def fit_exponential(data_x: List[float], data_y: List[float]) -> Tuple[float, fl
 
     Sample usage refer to test_linear_model().
     """
-    optimized_parameters = scipy.optimize.curve_fit(exponential, data_x, data_y)
+    optimized_parameters = scipy.optimize.curve_fit(exponential, data_x, data_y, maxfev=5000)
     a, b, c = optimized_parameters[0]
     prediction_data = [exponential(x_i, a, b, c) for x_i in data_x]
     rmse = calculate_rmse(data_y, prediction_data)
@@ -122,9 +122,9 @@ def fit_periodic(data_x: List[float], data_y: List[float],
 
     Sample usage refer to test_periodic_model().
     """
-    optimized_parameters = scipy.optimize.curve_fit(periodic, data_x, data_y, p0=initial_guess)
+    optimized_parameters = scipy.optimize.curve_fit(periodic, data_x, data_y, p0=initial_guess, maxfev=500000)
     a, b, c, d, e = optimized_parameters[0]
-    prediction_data = [a * np.cos(b * (x_i - c)) + d * x_i + e for x_i in data_x]
+    prediction_data = [periodic(x_i, a, b, c, d, e) for x_i in data_x]
     rmse = calculate_rmse(data_y, prediction_data)
     return (a, b, c, d, e, rmse)
 
