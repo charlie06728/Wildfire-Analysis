@@ -40,11 +40,11 @@ def double_figure_dot(title: str, x_label: str, x: list, y_label: str, y: list, 
     plt.show()
 
 
-def double_figure_line(title: str, x_label: str, x: list, y_label: str, y: list, z: list) -> None:
+def double_figure_line(title: str, x_label: str, x1: list, x2: list, y_label: str, y1: list, y2: list) -> None:
     """Draw a dot figure with x-y and x-z"""
     plt.figure(title)
-    plt.plot(x, y)
-    plt.plot(x, z)
+    plt.plot(x1, y1)
+    plt.plot(x2, y2)
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
