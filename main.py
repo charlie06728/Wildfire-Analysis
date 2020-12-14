@@ -2,10 +2,9 @@
 import data_prep
 from analysis import StateDataAnalysis
 
-# data_prep.select_cols('wildfire_data.csv', 'wildfire.csv', ['STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE'])
 
 if __name__ == '__main__':
-    analysis_ca = StateDataAnalysis('CA', 1994, 2013, 'ca_climate.csv', 'wildfire_data3.csv')
+    analysis_ca = StateDataAnalysis('CA', 1994, 2013, 'new_ca_climate.csv', 'new_wildfire_data.csv')
     # analysis_ca.analise_wildfire()
     analysis_ca.temp_time(max_guess=(16.847, 0.017182, 187.1, -0.649, 0.009168, 1731, 0.000122, 79.56),
                           min_guess=(11.92, 0.017182, 188, -0.58, 0.009046, 1737, 0.00002, 54),

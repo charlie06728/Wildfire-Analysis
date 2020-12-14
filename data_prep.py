@@ -11,13 +11,25 @@ import datetime
 from typing import Dict, List
 
 
+def filter_data() -> None:
+    """Filter the data in wildfire_data.csv and ca_climate.csv.
+     Store the new data in new_wildfire_data.csv and new_ca_climate.csv"""
+    fire_data = pd.read_csv('wildfire_data.csv', low_memory=False)
+    fire_data = fire_data[['STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE']]
+    new_fire_data = fire_data.drop(fire_data[fire_data['STATE'] != 'CA'].index)
+    new_fire_data.to_csv('new_wildfire_data.csv')
+    climate_data = pd.read_csv('ca_climate.csv', low_memory=False)
+    climate_data = climate_data[['DATE', 'TAVG', 'TMAX', 'TMIN', 'PRCP']]
+    climate_data.to_csv('new_ca_climate.csv')
+
+
 class Temperature:
     """The temperature data of a state.
 
     Use the first day of a month in datetime.date to represent this month.
 
     Instance Attributes:
-      - name: the name of the state
+      - name: the name of the state, represented by two capital letters
       - mean: a mapping from a month to a list of this month's average temperature from different stations
       - max: a mapping from a month to a list of this month's highest temperature from different stations
       - min: a mapping from a month to a list of this month's lowest temperature from different stations
@@ -82,7 +94,7 @@ class Precipitation:
     Use the first day of a month in datetime.date to represent this month.
 
     Instance Attributes:
-      - name: the name of the state
+      - name: the name of the state, represented by two capital letters
       - total: a mapping from a month to a list of this month's total precipitation from different stations
     """
     name: str
@@ -122,7 +134,7 @@ class Wildfire:
     Use the first day of a year in datetime.date to represent this year.
 
     Instance Attribute:
-      - name: the name of the state
+      - name: the name of the state, represented by two capital letters
       - occurs: a mapping from a year to a list of every wildfire's size happening in this year
     """
     name: str
@@ -163,3 +175,7 @@ class Wildfire:
                 date = datetime.date(year, month, 1)
                 mean_size_so_far.append(sum(self.occurs[date]) / len(self.occurs[date]))
         return mean_size_so_far
+
+
+if __name__ == '__main__':
+    filter_data()
