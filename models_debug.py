@@ -30,7 +30,7 @@ def graph_quadratic_fit(a_true: float, b_true: float, c_true: float) -> None:
     >>> graph_quadratic_fit(2, 0, 2)
     """
     data = generate_quadratic_data(a_true, b_true, c_true)
-    a, b, c = fit_quadratic(data[0], data[1])
+    a, b, c, _ = fit_quadratic(data[0], data[1])
     calc_data = generate_quadratic_data(a, b, c)
 
     # plotting
@@ -39,8 +39,8 @@ def graph_quadratic_fit(a_true: float, b_true: float, c_true: float) -> None:
     fig.show()
 
 
-def graph_periodic_fit(a_true: float, b_true: float, c_true: float, d_true: float, e_true: float,
-                       initial_guess: Optional[List] = None) -> None:
+def graph_periodic_fit(a_true: float, b_true: float, c_true: float, m_true: float, n_true: float, p_true: float,
+                       d_true: float, e_true: float, initial_guess: Optional[List] = None) -> None:
     """Generate periodic data using the five input coefficients. Calculate
     optimized coefficients by using periodic_fit() on the generated data, and
     generate periodic line based on optimized coefficients. Plot the data and
@@ -53,7 +53,7 @@ def graph_periodic_fit(a_true: float, b_true: float, c_true: float, d_true: floa
     >>> graph_periodic_fit(-2, -3, 0, -0.3, 10, [-2, -3, 1, 1, 1])
     """
     data = generate_periodic_data(a_true, b_true, c_true, d_true, e_true)
-    a, b, c, d, e = fit_periodic(data[0], data[1], initial_guess=initial_guess)
+    a, b, c, m, n, p, d, e, _ = fit_periodic(data[0], data[1], initial_guess=initial_guess)
     calc_data = generate_periodic_data(a, b, c, d, e)
 
     # plotting

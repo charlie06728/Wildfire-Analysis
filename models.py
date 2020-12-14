@@ -6,7 +6,7 @@ This Python file contains the mathematical models used to fit the data.
 
 This file is Copyright (c) 2020 Yuzhi Tang, Zeyang Ni, Junru Lin, and Jasmine Zhuang.
 """
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 import math
 import numpy as np
 import scipy.optimize
@@ -20,7 +20,7 @@ import scipy.optimize
 # fit_quadratic, fit_inverse, and fit_periodic for usage details.
 
 def fit_exponential(data_x: List[float], data_y: List[float]) -> Tuple[float, float, float, float]:
-    """Return the optimized values of a, b in the equation y = a * (b ** x) + c for fitting
+    """Return the optimized values of a, b in the equation y = a * (b^x) + c for fitting
     the provided data, and the root mean squared error of the model.
     data_x is the list of x coordinates of the data points and data_y is the
     corresponding list of y coordinates of the data points.
@@ -100,10 +100,11 @@ def fit_logarithm(data_x: List[float], data_y: List[float]) -> Tuple[float, floa
 
 
 def fit_periodic(data_x: List[float], data_y: List[float],
-                 initial_guess: Optional[List[float]] = None) \
-        -> Tuple[float, float, float, float, float, float]:
+                 initial_guess: Tuple[float, float, float, float, float, float, float, float],
+                 test_range: Tuple[float, float]) \
+        -> Tuple[float, float, float, float, float, float, float, float, float]:
     """Return the optimized values of a, b, c, d, e in the periodic line equation
-    y = a * (cos(b * (x - c))) + d * x + e for fitting the provided data, and
+    y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e for fitting the provided data, and
     the root mean squared error of the model.(note: the term d * x is used for compensating
     increasing/decreasing trend of the overall data).
 
@@ -122,15 +123,128 @@ def fit_periodic(data_x: List[float], data_y: List[float],
 
     Sample usage refer to test_periodic_model().
     """
-    optimized_parameters = scipy.optimize.curve_fit(periodic, data_x, data_y, p0=initial_guess, maxfev=50000)
-    a, b, c, d, e = optimized_parameters[0]
-    prediction_data = [periodic(x_i, a, b, c, d, e) for x_i in data_x]
-    rmse = calculate_rmse(data_y, prediction_data)
-    return (a, b, c, d, e, rmse)
+    a0 = initial_guess[0]
+    b0 = initial_guess[1]
+    c0 = initial_guess[2]
+    m0 = initial_guess[3]
+    n0 = initial_guess[4]
+    p0 = initial_guess[5]
+    d0 = initial_guess[6]
+    e0 = initial_guess[7]
+    begin = test_range[0]
+    end = test_range[1]
+    a_possible = list(np.linspace(begin * a0, end * a0, 100))
+    b_possible = list(np.linspace(begin * b0, end * b0, 100))
+    c_possible = list(np.linspace(begin * c0, end * c0, 100))
+    m_possible = list(np.linspace(begin * m0, end * m0, 100))
+    n_possible = list(np.linspace(begin * n0, end * n0, 100))
+    p_possible = list(np.linspace(begin * p0, end * p0, 100))
+    d_possible = list(np.linspace(begin * d0, end * d0, 100))
+    e_possible = list(np.linspace(begin * e0, end * e0, 100))
+    best_so_far = (a0, b0, c0, m0, n0, p0, d0, e0, math.inf)
+    for _ in range(50):
+        for a in a_possible:
+            b = best_so_far[1]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for b in b_possible:
+            a = best_so_far[0]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for c in c_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for m in m_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            c = best_so_far[2]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for n in n_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for p in p_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            d = best_so_far[6]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for e in e_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            d = best_so_far[6]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        for d in d_possible:
+            a = best_so_far[0]
+            b = best_so_far[1]
+            c = best_so_far[2]
+            m = best_so_far[3]
+            n = best_so_far[4]
+            p = best_so_far[5]
+            e = best_so_far[7]
+            prediction_data = [periodic(x, a, b, c, m, n, p, d, e) for x in data_x]
+            rmse = calculate_rmse(data_y, prediction_data)
+            if rmse < best_so_far[8]:
+                best_so_far = (a, b, c, m, n, p, d, e, rmse)
+
+    return best_so_far
 
 
 def exponential(x: float, a: float, b: float, c: float) -> float:
-    """Return the y value according to the equation y = a * (b ** x) + c.
+    """Return the y value according to the equation y = a * (b^x) + c.
 
     Preconditions:
         - b > 0
@@ -161,9 +275,9 @@ def logarithm(x: float, a: float, b: float) -> float:
     return a * np.log(x) + b
 
 
-def periodic(x: float, a: float, b: float, c: float, d: float, e: float) -> float:
+def periodic(x: float, a: float, b: float, c: float, m: float, n: float, p: float, d: float, e: float) -> float:
     """Return the y value according to the equation y = a * (cos(b * (x - c))) + d * x + e"""
-    return a * np.cos(b * (x - c)) + d * x + e
+    return a * np.cos(b * (x - c)) + m * np.cos(n * (x - p)) + d * x + e
 
 
 def calculate_rmse(real_data: List[float], prediction_data: List[float]) -> float:
@@ -260,7 +374,7 @@ def test_fit_logarithm() -> None:
 
 
 def test_fit_periodic() -> None:
-    """Generate 2d data in the form y = a * (cos(b * (x - c))) + d * x + e, according
+    """Generate 2d data in the form y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e, according
     to chosen coefficients; then, generate the same type of data according to the optimized
     coefficients calculated by fit_periodic() using the already generated data. Test if both
     data are close to each other.
@@ -270,19 +384,23 @@ def test_fit_periodic() -> None:
     could be different but still generate the same data)
     """
 
-    # test 1, generated data in the form: y = 10 * (cos(2 * (x - 1))) + 0.02 * x + 7:
-    a_true, b_true, c_true, d_true, e_true = 10, 2, 1, 0.02, 7
-    data = generate_periodic_data(a_true, b_true, c_true, d_true, e_true)
-    a, b, c, d, e, _ = fit_periodic(data[0], data[1], initial_guess=[1, 2, 1, 1, 1])
-    calculated_data = generate_periodic_data(a, b, c, d, e)
+    # test 1, generated data in the form: y = 10 * (cos(2 * (x - 1))) + 3 * (cos(0.8 * (x - 2))) + 0.02 * x + 7:
+    a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true = 10, 2, 1, 3, 0.8, 2, 0.02, 7
+    data = generate_periodic_data(a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true)
+    a, b, c, m, n, p, d, e, _ = fit_periodic(data[0], data[1],
+                                             initial_guess=(9.8, 2.1, 1.1, 3.02, 0.88, 2, 0.021, 7.1),
+                                             test_range=(0.7, 1.3))
+    calculated_data = generate_periodic_data(a, b, c, m, n, p, d, e)
     assert all(math.isclose(data[1][i], calculated_data[1][i], abs_tol=1e-05)
                for i in range(len(data[1])))
 
-    # test 2, generated data in the form: y = -2 * (cos(-3 * x)) - 0.3 * x + 10:
-    a_true, b_true, c_true, d_true, e_true = -2, -3, 0, -0.3, 10
-    data = generate_periodic_data(a_true, b_true, c_true, d_true, e_true)
-    a, b, c, d, e, _ = fit_periodic(data[0], data[1], initial_guess=[-2, -3, 1, 1, 1])
-    calculated_data = generate_periodic_data(a, b, c, d, e)
+    # test 2, generated data in the form: y = -2 * (cos(-3 * x)) + 0.6 * (cos(2 * (x - 0.5))) - 0.3 * x + 10:
+    a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true = -2, -3, 0, 0.6, 2, 0.5, -0.3, 10
+    data = generate_periodic_data(a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true)
+    a, b, c, m, n, p, d, e, _ = fit_periodic(data[0], data[1],
+                                             initial_guess=(-2.1, -2.98, 0.1, 0.62, 2.2, 0.53, -0.31, 9.9),
+                                             test_range=(0.7, 1.3))
+    calculated_data = generate_periodic_data(a, b, c, m, n, p, d, e)
     assert all(math.isclose(data[1][i], calculated_data[1][i], abs_tol=1e-05)
                for i in range(len(data[1])))
 
@@ -328,13 +446,13 @@ def generate_logarithm_data(a: float, b: float) -> Tuple[List[float], List[float
     return (data_x, data_y)
 
 
-def generate_periodic_data(a: float, b: float, c: float, d: float, e: float) \
+def generate_periodic_data(a: float, b: float, c: float, m: float, n: float, p: float, d: float, e: float) \
         -> Tuple[List[float], List[float]]:
     """Return a tuple where the first element is a list of x coordinates [0, 1, 2,...,50]
     and the second element is a list of corresponding y coordinates such that
-    y = a * (cos(b * (x - c))) + d * x + e."""
+    y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e"""
     data_x = list(range(0, 51))
-    data_y = [periodic(x, a, b, c, d, e) for x in range(0, 51)]
+    data_y = [periodic(x, a, b, c, m, n, p, d, e) for x in range(0, 51)]
     return (data_x, data_y)
 
 
