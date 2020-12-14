@@ -25,3 +25,29 @@ min temp - time of CA (periodic model): RMSE=2.932889, y = 11.913980 * (cos(0.01
 mean temp - time of CA (periodic model): RMSE=2.995619, y = 14.922533 * (cos(0.017174 * (x - 184.738788))) + (-0.545275) * (cos(0.009235 * (x - 1798.091414))) + 0.000001 * x + 57.640874
 
 prcp - time of CA (periodic model): RMSE=1.509227, y = 1.724477 * (cos(0.017209 * (x - 375.542063))) + (-0.319513) * (cos(0.006854 * (x - 1929.415152))) + -0.000001 * x + 2.148300
+
+
+（1-3） or（5-7）:
+max的RMSE值最小，并且max数据本身比其他两组数据要大，所以max拟合野火freq的误差最小。
+
+（1-3） and（5-7）:
+quadratic model 比quadratic model 更适合 temp-freq。因而在预测中将采用quadratic model。
+
+（9-11）and (13-15) and （20-21）:
+wildfire size的数据大量集中在0到200范围内，RMSE在100附件说明拟合情况非常差
+用exponential和quadratic model来拟合temp-size是失败的
+用inverse和logarithm模型来拟合prcp-size也是失败的
+很有可能size和temp、prcp关联并不是很大
+
+（17-18）:
+logrithm model比inverse model更适合prcp-frec。因而在预测中将采用logrithm model。
+
+（23-25）：
+max的RMSE明显大于min和mean，所以对未来min和mean的预测将更为准确。
+
+（（1-3）or（5-7）） and （23-25）:
+我们可以更好的预测未来min和mean temp的值，但是min和mean对frec的预测却不如max。
+我们无法判断哪个是最好的，因而我们将同时预测未来的max、min、mean temp以预测frec
+
+27：
+大量的prcp数据集中在0到10的范围内，而模型预测的RMSE=1.5，说明这个模型预测误差很大，并不完全适合预测prcp
