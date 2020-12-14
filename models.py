@@ -122,7 +122,7 @@ def fit_periodic(data_x: List[float], data_y: List[float],
 
     Sample usage refer to test_periodic_model().
     """
-    optimized_parameters = scipy.optimize.curve_fit(periodic, data_x, data_y, p0=initial_guess, maxfev=500000)
+    optimized_parameters = scipy.optimize.curve_fit(periodic, data_x, data_y, p0=initial_guess, maxfev=50000)
     a, b, c, d, e = optimized_parameters[0]
     prediction_data = [periodic(x_i, a, b, c, d, e) for x_i in data_x]
     rmse = calculate_rmse(data_y, prediction_data)

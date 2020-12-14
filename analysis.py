@@ -116,6 +116,8 @@ class StateDataAnalysis:
 
     def analise_all(self) -> None:
         """Analise all data of the state."""
+        self.temp_time()
+        self.prcp_time()
         self.temp_freq_exponential()
         self.temp_freq_quadratic()
         self.temp_size_exponential()
@@ -130,40 +132,45 @@ def analysis_exponential(title: str, x_label: str, x: List[float], y_label: str,
     """Modeling between x and y using exponential model."""
     a, b, c, rmse = models.fit_exponential(x, y)
     print(title, ': RMSE=', rmse)
-    prediction_y = [models.exponential(x_i, a, b, c) for x_i in x]
-    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+    new_x = generate_x_data(min(x), max(x), 1000)
+    prediction_y = [models.exponential(x_i, a, b, c) for x_i in new_x]
+    figure.double_figure_dot_line(title, x_label, x, new_x, y_label, y, prediction_y)
 
 
 def analysis_quadratic(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
     """Modeling between x and y using quadratic model."""
     a, b, c, rmse = models.fit_quadratic(x, y)
     print(title, ': RMSE=', rmse)
-    prediction_y = [models.quadratic(x_i, a, b, c) for x_i in x]
-    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+    new_x = generate_x_data(min(x), max(x), 1000)
+    prediction_y = [models.quadratic(x_i, a, b, c) for x_i in new_x]
+    figure.double_figure_dot_line(title, x_label, x, new_x, y_label, y, prediction_y)
 
 
 def analysis_inverse(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
     """Modeling between x and y using inverse model."""
     a, b, rmse = models.fit_inverse(x, y)
     print(title, ': RMSE=', rmse)
-    prediction_y = [models.inverse(x_i, a, b) for x_i in x]
-    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+    new_x = generate_x_data(min(x), max(x), 1000)
+    prediction_y = [models.inverse(x_i, a, b) for x_i in new_x]
+    figure.double_figure_dot_line(title, x_label, x, new_x, y_label, y, prediction_y)
 
 
 def analysis_logarithm(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
     """Modeling between x and y using inverse model."""
     a, b, rmse = models.fit_logarithm(x, y)
     print(title, ': RMSE=', rmse)
-    prediction_y = [models.logarithm(x_i, a, b) for x_i in x]
-    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+    new_x = generate_x_data(min(x), max(x), 1000)
+    prediction_y = [models.logarithm(x_i, a, b) for x_i in new_x]
+    figure.double_figure_dot_line(title, x_label, x, new_x, y_label, y, prediction_y)
 
 
 def analysis_periodic(title: str, x_label: str, x: List[float], y_label: str, y: List[float]) -> None:
     """Modeling between x and y using periodic model."""
-    a, b, c, d, e, rmse = models.fit_periodic(x, y)
-    print(title, ': RMSE=', rmse, a, b, c, d, e)
-    prediction_y = [models.periodic(x_i, a, b, c, d, e) for x_i in x]
-    figure.double_figure_dot(title, x_label, x, y_label, y, prediction_y)
+    a, b, c, d, e, rmse = models.fit_periodic(x, y, [20, 0.015, 120, 0, 60])
+    print(title, ': RMSE=', rmse, 'a=', a, 'b=', b, 'c=', c, 'd=', d, 'e=', e)
+    new_x = generate_x_data(min(x), max(x), 5000)
+    prediction_y = [models.periodic(x_i, a, b, c, d, e) for x_i in new_x]
+    figure.double_figure_dot_line(title, x_label, x, new_x, y_label, y, prediction_y)
 
 
 def generate_date_list(begin: int, end: int) -> List[datetime.date]:
@@ -188,9 +195,22 @@ def generate_time_lag_list(begin: int, end: int) -> List[int]:
     return time_lag_list_so_far
 
 
+def generate_x_data(begin: float, end: float, nums: int) -> List[float]:
+    """Return a list of floats from begin to end, the length of which is nums.
+    The number between begin and end will be divided equally.
+
+    Preconditions:
+      - end > begin
+      - num > 0
+    """
+    step_len = (end - begin) / nums
+    return [begin + num * step_len for num in range(nums)]
+
+
 if __name__ == '__main__':
     analysis_ca = StateDataAnalysis('CA', 1994, 2013, 'ca_climate.csv', 'wildfire_data2.csv')
-    analysis_ca.temp_time()
-    analysis_ca.prcp_time()
+    analysis_ca.analise_all()
+    # analysis_ca.temp_time()
+    # analysis_ca.prcp_time()
     # analysis_tx = StateDataAnalysis('TX', 1994, 2013, 'tx_climate.csv', 'wildfire_data2.csv')
     # analysis_tx.analise_all()
