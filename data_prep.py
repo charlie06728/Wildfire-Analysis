@@ -80,9 +80,9 @@ class Temperature:
             # Checking if the mean, max, min temperature entries for the row are valid (non-empty).
             # The temperature entry is only added if it is valid.
             mean_isvalid, max_isvalid, min_isvalid = \
-                len(data[mean_column][i]) > 0, \
-                len(data[max_column][i]) > 0, \
-                len(data[min_column][i]) > 0
+                data[mean_column][i] > -500, \
+                data[max_column][i] > -500, \
+                data[min_column][i] > -500
 
             # Add data to dictionaries.
             if date not in self.mean:
@@ -172,7 +172,7 @@ class Precipitation:
 
             # Checking if the precipitation entry for the row is non-empty.
             # The precipitation entry is only added if it is non-empty.
-            if len(data[prcp_column][i]) >= 0:
+            if data[prcp_column][i] >= 0:
                 if date not in self.total:
                     self.total[date] = [float(data[prcp_column][i])]
                 else:
@@ -187,7 +187,7 @@ class Precipitation:
                 month_data = self.total[datetime.date(year, month, 1)]
                 # Due to the configuration of the modelling part of the project, month_mean cannot
                 # be 0, so a value close to 0 is chosen instead.
-                month_mean = max(sum(month_data) / len(month_data), 0.001)
+                month_mean = max(sum(month_data) / len(month_data), 0.1)
                 total_every_month.append(month_mean)
 
         return total_every_month
@@ -255,13 +255,12 @@ class Wildfire:
 
 
 if __name__ == '__main__':
-    filter_data()
+    # filter_data()
 
-    # import python_ta
-    #
-    # python_ta.check_all(config={
-    #     'extra-imports': ['pandas', 'datetime', 'typing', 'python_ta.contracts'],
-    #     'allowed-io': [],
-    #     'max-line-length': 100,
-    #     'disable': ['R1705', 'C0200']
-    # })
+    import python_ta
+    python_ta.check_all(config={
+        'extra-imports': ['pandas', 'datetime', 'typing'],
+        'allowed-io': [],
+        'max-line-length': 100,
+        'disable': ['R0913', 'R1705', 'C0200']
+    })

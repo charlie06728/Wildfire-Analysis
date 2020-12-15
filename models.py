@@ -111,16 +111,20 @@ def fit_periodic(data_x: List[float], data_y: List[float],
     data_x is the list of x coordinates of the data points and data_y is the corresponding
     list of y coordinates of the data points.
 
-    initial_guess is an optional list for setting the initial values of the coefficients
-    a, b, c, d, e prior to being optimized. Pass in initial_guess if the optimized coefficients
-    does not appear to be fitting the data optimally (scipy.optimize.curve_fit() may be stuck at
-    local minimums when trying to minimize the loss function).
+    initial_guess is a list for setting the initial values of the coefficients
+    a, b, c, d, e prior to being optimized.
 
-    Note: this function uses scipy.optimize.curve_fit() to find the optimized values of a, b, c.
+    Since this function is for a periodic model, the user should first observe
+    the figure of the data and estimate a, b, c, m, n, p, d, e.
+    If the user is not confident about the estimation, he should set test_range
+    large and then call this function again with the guess from the first call,
+    and make test_range smaller.
 
     Preconditions:
         - len(data_x) == len(data_y)
+        - test_range[0] < test_range[1]
     """
+    # Get the center point of the test range
     a0 = initial_guess[0]
     b0 = initial_guess[1]
     c0 = initial_guess[2]
@@ -129,6 +133,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
     p0 = initial_guess[5]
     d0 = initial_guess[6]
     e0 = initial_guess[7]
+    # Get the test range for every parameter
+    # Divide the test range into 100 tests on average
     begin = test_range[0]
     end = test_range[1]
     a_possible = list(np.linspace(begin * a0, end * a0, 100))
@@ -139,8 +145,13 @@ def fit_periodic(data_x: List[float], data_y: List[float],
     p_possible = list(np.linspace(begin * p0, end * p0, 100))
     d_possible = list(np.linspace(begin * d0, end * d0, 100))
     e_possible = list(np.linspace(begin * e0, end * e0, 100))
+    # initialize the best parameters, which may be replaced then
     best_so_far = (a0, b0, c0, m0, n0, p0, d0, e0, math.inf)
+    # Test 50 rounds
+    # The more rounds it takes, the better answer the function will return
     for _ in range(50):
+        # find a best a in a_possible for a round,
+        # which is locally optimal solution for a
         for a in a_possible:
             b = best_so_far[1]
             c = best_so_far[2]
@@ -153,6 +164,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best b in b_possible in a round,
+        # which is locally optimal solution for b
         for b in b_possible:
             a = best_so_far[0]
             c = best_so_far[2]
@@ -165,6 +178,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best c in c_possible in a round,
+        # which is locally optimal solution for c
         for c in c_possible:
             a = best_so_far[0]
             b = best_so_far[1]
@@ -177,6 +192,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best m in m_possible in a round,
+        # which is locally optimal solution for m
         for m in m_possible:
             a = best_so_far[0]
             b = best_so_far[1]
@@ -189,6 +206,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best n in n_possible in a round,
+        # which is locally optimal solution for n
         for n in n_possible:
             a = best_so_far[0]
             b = best_so_far[1]
@@ -201,6 +220,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best p in p_possible in a round,
+        # which is locally optimal solution for p
         for p in p_possible:
             a = best_so_far[0]
             b = best_so_far[1]
@@ -213,6 +234,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best e in e_possible in a round,
+        # which is locally optimal solution for e
         for e in e_possible:
             a = best_so_far[0]
             b = best_so_far[1]
@@ -225,6 +248,8 @@ def fit_periodic(data_x: List[float], data_y: List[float],
             rmse = calculate_rmse(data_y, prediction_data)
             if rmse < best_so_far[8]:
                 best_so_far = (a, b, c, m, n, p, d, e, rmse)
+        # find a best d in d_possible in a round,
+        # which is locally optimal solution for d
         for d in d_possible:
             a = best_so_far[0]
             b = best_so_far[1]
