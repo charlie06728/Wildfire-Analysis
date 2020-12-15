@@ -2,18 +2,23 @@
 
 Module Description
 ==================
-This Python file contains the classes of Temperature, Precipitation and Wildfire.
+This Python file contains functions and classes that are used for preparing and storing
+data from the raw csv files.
+
+The three classes used for storing data are Temperature, Precipitation and Wildfire, each
+storing their respective data for a particular state (e.g. California).
 
 This file is Copyright (c) 2020 Yuzhi Tang, Zeyang Ni, Junru Lin, and Jasmine Zhuang.
 """
-import pandas as pd
-import datetime
 from typing import Dict, List
+import datetime
+import pandas as pd
 
 
 def filter_data() -> None:
-    """Filter the data in wildfire_data.csv and ca_climate.csv.
-     Store the new data in new_wildfire_data.csv and new_ca_climate.csv"""
+    """Create instances to filter the data in wildfire_data.csv and ca_climate.csv
+    by dropping columns that are not needed, then create two new files: new_wildfire_data.csv
+    and new_ca_climate.csv to store the filtered data."""
     fire_data = pd.read_csv('wildfire_data.csv', low_memory=False)
     fire_data = fire_data[['STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE']]
     new_fire_data = fire_data.drop(fire_data[fire_data['STATE'] != 'CA'].index)
@@ -24,43 +29,80 @@ def filter_data() -> None:
 
 
 class Temperature:
-    """The temperature data of a state.
-
-    Use the first day of a month in datetime.date to represent this month.
+    """A class that stores monthly temperature data collected from various weather stations
+    of a state.
 
     Instance Attributes:
-      - name: the name of the state, represented by two capital letters
-      - mean: a mapping from a month to a list of this month's average temperature from different stations
-      - max: a mapping from a month to a list of this month's highest temperature from different stations
-      - min: a mapping from a month to a list of this month's lowest temperature from different stations
+        - name: the name of the state, represented by two capital letters
+        - mean: a mapping from a month to a list of this month's average temperature
+        from different stations
+        - max: a mapping from a month to a list of this month's highest temperature
+        from different stations
+        - min: a mapping from a month to a list of this month's lowest temperature
+        from different stations
+
+    Note: a month is represented using datetime.date() object, and it uses the first day
+    of the month. E.g. 1989-12 => datetime.date(1989, 12, 1).
     """
     name: str
     mean: Dict[datetime.date, List[float]]
     max: Dict[datetime.date, List[float]]
     min: Dict[datetime.date, List[float]]
 
-    def __init__(self, name: str, file: str, date_title: str, mean_title: str, max_title: str, min_title: str) -> None:
-        """Initialize a new temperature data for a state."""
+    def __init__(self, name: str, file: str, date_column: str, mean_column: str,
+                 max_column: str, min_column: str) -> None:
+        """Initialize a new temperature data for a state.
+
+        Parameters:
+            - name: the name of the state, represented by two capital letters.
+            - file: location of the csv file.
+            - date_column: name of the column containing the month of when the
+            temperature data is collected.
+            - mean_column: name of the column containing mean temperature data (of a month).
+            - max_column: name of the column containing maximum temperature data  (of a month).
+            - min_column: name of the column containing minimum temperature data (of a month).
+        """
         self.name = name
         self.mean = {}
         self.max = {}
         self.min = {}
-        data = pd.read_csv(file, low_memory=False)
-        length = len(data)
-        for i in range(length):
-            date = datetime.datetime.strptime(data[date_title][i], '%Y-%m').date()
-            if float(data[mean_title][i]) > 0:
-                if date not in self.mean:
-                    self.mean[date] = [float(data[mean_title][i])]
-                    self.max[date] = [float(data[max_title][i])]
-                    self.min[date] = [float(data[min_title][i])]
-                else:
-                    self.mean[date].append(float(data[mean_title][i]))
-                    self.max[date].append(float(data[max_title][i]))
-                    self.min[date].append(float(data[min_title][i]))
 
-    def mean_months(self, begin: int, end: int) -> List[float]:
-        """Return a list of every month's average temperature from the year of begin to the year of end."""
+        # Read data from csv file.
+        data = pd.read_csv(file, low_memory=False)
+
+        length = len(data)
+
+        for i in range(length):
+
+            # Convert month string (in the form: yyyy-mm) from csv file to datetime.date() object.
+            date = datetime.datetime.strptime(data[date_column][i], '%Y-%m').date()
+
+            # Checking if the mean, max, min temperature entries for the row are valid (non-empty).
+            # The temperature entry is only added if it is valid.
+            mean_isvalid, max_isvalid, min_isvalid = \
+                len(data[mean_column][i]) > 0, \
+                len(data[max_column][i]) > 0, \
+                len(data[min_column][i]) > 0
+
+            # Add data to dictionaries.
+            if date not in self.mean:
+                if mean_isvalid:
+                    self.mean[date] = [float(data[mean_column][i])]
+                if max_isvalid:
+                    self.max[date] = [float(data[max_column][i])]
+                if min_isvalid:
+                    self.min[date] = [float(data[min_column][i])]
+            else:
+                if mean_isvalid:
+                    self.mean[date].append(float(data[mean_column][i]))
+                if max_isvalid:
+                    self.max[date].append(float(data[max_column][i]))
+                if min_isvalid:
+                    self.min[date].append(float(data[min_column][i]))
+
+    def mean_temperature(self, begin: int, end: int) -> List[float]:
+        """Return a list of the mean temperature of every month's mean temperature entries
+        (collected from the various weather stations) from the begin year to the end year."""
         mean_every_month = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
@@ -69,8 +111,9 @@ class Temperature:
 
         return mean_every_month
 
-    def max_months(self, begin: int, end: int) -> List[float]:
-        """Return a list of every month's highest temperature from the year of begin to the year of end."""
+    def max_temperature(self, begin: int, end: int) -> List[float]:
+        """Return a list of the maximum temperature of every month's max temperature entries
+        (collected from the various weather stations) from the begin year to the end year."""
         max_every_month = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
@@ -78,97 +121,131 @@ class Temperature:
 
         return max_every_month
 
-    def min_months(self, begin: int, end: int) -> List[float]:
-        """Return a list of every month's lowest temperature from the year of begin to the year of end."""
+    def min_temperature(self, begin: int, end: int) -> List[float]:
+        """Return a list of the minimum temperature of every month's min temperature entries
+        (collected from the various weather stations) from the begin year to the end year."""
         min_every_month = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
-                min_every_month.append(max(self.min[datetime.date(year, month, 1)]))
+                min_every_month.append(min(self.min[datetime.date(year, month, 1)]))
 
         return min_every_month
 
 
 class Precipitation:
-    """The precipitation data of a state.
-
-    Use the first day of a month in datetime.date to represent this month.
+    """A class that stores monthly precipitation data collected from various weather
+    stations of a state.
 
     Instance Attributes:
-      - name: the name of the state, represented by two capital letters
-      - total: a mapping from a month to a list of this month's total precipitation from different stations
+        - name: the name of the state, represented by two capital letters.
+        - total: a mapping from a month to a list of this month's total precipitation
+        from different stations.
+
+    Note: a month is represented using datetime.date() object, and it uses the first day
+    of the month. E.g. 1989-12 => datetime.date(1989, 12, 1).
     """
     name: str
     total: Dict[datetime.date, List[float]]
 
-    def __init__(self, name: str, file: str, date_title: str, prcp_title: str) -> None:
-        """Initialize a new precipitation data for a state."""
+    def __init__(self, name: str, file: str, date_column: str, prcp_column: str) -> None:
+        """Initialize a new precipitation data for a state.
+
+        Parameters:
+            - name: the name of the state, represented by two capital letters.
+            - file: location of the csv file.
+            - date_column: name of the column containing the month of when the temperature data
+            is collected.
+            - prcp_column: name of the column containing the total precipitation (of a month).
+        """
         self.name = name
         self.total = {}
-        data = pd.read_csv(file, low_memory=False)
-        length = len(data)
-        for i in range(length):
-            date = datetime.datetime.strptime(data[date_title][i], '%Y-%m').date()
-            if float(data[prcp_title][i]) >= 0:
-                if date not in self.total:
-                    self.total[date] = [float(data[prcp_title][i])]
-                else:
-                    self.total[date].append(float(data[prcp_title][i]))
 
-    def total_months(self, begin: int, end: int) -> List[float]:
-        """Return a list of every month's total precipitation from the year of begin to the year of end, which is the
-        average of all stations.
-        """
+        # Read data from csv file.
+        data = pd.read_csv(file, low_memory=False)
+
+        length = len(data)
+
+        for i in range(length):
+
+            # Convert month string (in the form: yyyy-mm) from csv file to datetime.date() object.
+            date = datetime.datetime.strptime(data[date_column][i], '%Y-%m').date()
+
+            # Checking if the precipitation entry for the row is non-empty.
+            # The precipitation entry is only added if it is non-empty.
+            if len(data[prcp_column][i]) >= 0:
+                if date not in self.total:
+                    self.total[date] = [float(data[prcp_column][i])]
+                else:
+                    self.total[date].append(float(data[prcp_column][i]))
+
+    def total_precipitation(self, begin: int, end: int) -> List[float]:
+        """Return a list of the mean precipitation of every month's total precipitation entries
+        (collected from the various weather stations) from the begin year to the end year."""
         total_every_month = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
                 month_data = self.total[datetime.date(year, month, 1)]
-                month_mean = max(sum(month_data) / len(month_data), 0.1)
+                # Due to the configuration of the modelling part of the project, month_mean cannot
+                # be 0, so a value close to 0 is chosen instead.
+                month_mean = max(sum(month_data) / len(month_data), 0.001)
                 total_every_month.append(month_mean)
 
         return total_every_month
 
 
 class Wildfire:
-    """The wildfire data of a state.
-
-    Use the first day of a year in datetime.date to represent this year.
+    """A class that stores wildfire data of a state.
 
     Instance Attribute:
-      - name: the name of the state, represented by two capital letters
-      - occurs: a mapping from a year to a list of every wildfire's size happening in this year
+        - name: the name of the state, represented by two capital letters
+        - occurs: a mapping from a month to a list of every wildfire's size happened in the month
     """
     name: str
     occurs: Dict[datetime.date, List[float]]
 
-    def __init__(self, name: str, file: str, name_title: str, year_title: str, day_title: str, size_title: str) -> None:
-        """Initialize a new wildfire data for a state."""
+    def __init__(self, name: str, file: str, year_column: str, day_column: str,
+                 size_column: str) -> None:
+        """Initialize a new wildfire data for a state.
+
+        Parameters:
+            - name: the name of the state, represented by two capital letters.
+            - file: location of the csv file.
+            - year_column: name of the column containing the year of when the wildfire occurred.
+            - day_column: name of the column containing the day of year of when the wildfire
+            occurred.
+            - size_column: name of the column containing the burnt area of the wildfire.
+        """
         self.name = name
         self.occurs = {}
-        data = pd.read_csv(file, low_memory=False)
-        length = len(data)
-        for i in range(length):
-            if data[name_title][i] == name:
-                year = int(data[year_title][i])
-                month = int(int(data[day_title][i]) / 31) + 1
-                date = datetime.date(year, month, 1)
-                if date not in self.occurs:
-                    self.occurs[date] = [float(data[size_title][i])]
-                else:
-                    self.occurs[date].append(float(data[size_title][i]))
 
-    def frequency_months(self, begin: int, end: int) -> List[int]:
-        """Return a list of every month's frequency of wildfire from the year of begin to the year of end.
-        The frequency is represented by the number of wildfire.
-        """
-        frequency_so_far = []
+        # Read data from csv file.
+        data = pd.read_csv(file, low_memory=False)
+
+        length = len(data)
+
+        for i in range(length):
+            year = int(data[year_column][i])
+            # Estimate the month in year when the wildfire occurred
+            month = int(int(data[day_column][i]) / 31) + 1
+            date = datetime.date(year, month, 1)
+            if date not in self.occurs:
+                self.occurs[date] = [float(data[size_column][i])]
+            else:
+                self.occurs[date].append(float(data[size_column][i]))
+
+    def number_of_fires_in_months(self, begin: int, end: int) -> List[int]:
+        """Return a list of every month's number of wildfires from the begin year to the end
+        year."""
+        fires_so_far = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
                 date = datetime.date(year, month, 1)
-                frequency_so_far.append(len(self.occurs[date]))
-        return frequency_so_far
+                fires_so_far.append(len(self.occurs[date]))
+        return fires_so_far
 
-    def mean_size_months(self, begin: int, end: int) -> List[float]:
-        """Return a list of every month's average size of wildfire from the year of begin to the year of end."""
+    def mean_size_of_fires_in_months(self, begin: int, end: int) -> List[float]:
+        """Return a list of every month's mean size of wildfire from the begin year to the end
+        year."""
         mean_size_so_far = []
         for year in range(begin, end + 1):
             for month in range(1, 13):
@@ -179,3 +256,12 @@ class Wildfire:
 
 if __name__ == '__main__':
     filter_data()
+
+    # import python_ta
+    #
+    # python_ta.check_all(config={
+    #     'extra-imports': ['pandas', 'datetime', 'typing', 'python_ta.contracts'],
+    #     'allowed-io': [],
+    #     'max-line-length': 100,
+    #     'disable': ['R1705', 'C0200']
+    # })

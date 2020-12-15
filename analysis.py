@@ -45,13 +45,13 @@ class StateDataAnalysis:
         self.end = end
         temp = Temperature(name, climate_file, 'DATE', 'TAVG', 'TMAX', 'TMIN')
         prcp = Precipitation(name, climate_file, 'DATE', 'PRCP')
-        wildfire = Wildfire(name, wildfire_file, 'STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE')
-        self.temp_max = temp.max_months(begin, end)
-        self.temp_min = temp.min_months(begin, end)
-        self.temp_mean = temp.mean_months(begin, end)
-        self.prcp = prcp.total_months(begin, end)
-        self.fire_freq = wildfire.frequency_months(begin, end)
-        self.fire_size = wildfire.mean_size_months(begin, end)
+        wildfire = Wildfire(name, wildfire_file, 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE')
+        self.temp_max = temp.max_temperature(begin, end)
+        self.temp_min = temp.min_temperature(begin, end)
+        self.temp_mean = temp.mean_temperature(begin, end)
+        self.prcp = prcp.total_precipitation(begin, end)
+        self.fire_freq = wildfire.number_of_fires_in_months(begin, end)
+        self.fire_size = wildfire.mean_size_of_fires_in_months(begin, end)
 
     def temp_time(self, max_guess: tuple, min_guess: tuple, mean_guess: tuple, test_range: tuple) -> List[tuple]:
         """Use periodic model to analise the relation between the temperature and wildfire frequency of the state."""
