@@ -13,12 +13,40 @@ This file is Copyright (c) 2020 Yuzhi Tang, Zeyang Ni, Junru Lin, and Jasmine Zh
 from typing import Dict, List
 import datetime
 import pandas as pd
+import sqlite3 as sql
+import os
+import csv
+from sqlite3 import Error
+
+
+def sqlite_extract() -> None:
+    """Process the original SQlite data and output a csv file called wildfire_data.csv"""
+    try:
+        # Connect to database
+        conn = sql.connect('FPA_FOD_20170508.sqlite')
+
+        # Export data into CSV file
+        print("Exporting data into CSV............")
+        cursor = conn.cursor()
+        cursor.execute("select * from Fires")
+        with open("wildfire_data.csv", "w") as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=",")
+            csv_writer.writerow([i[0] for i in cursor.description])
+            csv_writer.writerows(cursor)
+
+        dirpath = os.getcwd() + "/wildfire_data.csv"
+        print("Data exported Successfully into {}".format(dirpath))
+        conn.close()
+
+    except Error as e:
+        print(e)
 
 
 def filter_data() -> None:
     """Create instances to filter the data in wildfire_data.csv and ca_climate.csv
     by dropping columns that are not needed, then create two new files: new_wildfire_data.csv
     and new_ca_climate.csv to store the filtered data."""
+    print("Filtering data.....")
     fire_data = pd.read_csv('wildfire_data.csv', low_memory=False)
     fire_data = fire_data[['STATE', 'FIRE_YEAR', 'DISCOVERY_DOY', 'FIRE_SIZE']]
     new_fire_data = fire_data.drop(fire_data[fire_data['STATE'] != 'CA'].index)
@@ -255,6 +283,7 @@ class Wildfire:
 
 
 if __name__ == '__main__':
+    sqlite_extract()
     # filter_data()
 
     import python_ta
