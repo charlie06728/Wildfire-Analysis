@@ -30,7 +30,7 @@ def fit_exponential(data_x: List[float], data_y: List[float]) -> Tuple[float, fl
     Preconditions:
         - len(data_x) == len(data_y)
 
-    Sample usage refer to test_linear_model().
+    Sample usage refer to test_fit_exponential().
     """
     optimized_parameters = scipy.optimize.curve_fit(exponential, data_x, data_y, maxfev=5000)
     a, b, c = optimized_parameters[0]
@@ -41,16 +41,16 @@ def fit_exponential(data_x: List[float], data_y: List[float]) -> Tuple[float, fl
 
 def fit_quadratic(data_x: List[float], data_y: List[float]) -> Tuple[float, float, float, float]:
     """Return the optimized values of a, b, c in the quadratic line equation
-    y = a * x^2 + b * x + c for fitting the provided data, and the root mean squared error of the model.
-    data_x is the list of x coordinates of the data points and data_y is the corresponding list
-    of y coordinates of the data points.
+    y = a * x^2 + b * x + c for fitting the provided data, and the root mean
+    squared error of the model. data_x is the list of x coordinates of the data
+    points and data_y is the corresponding list of y coordinates of the data points.
 
     Note: this function uses scipy.optimize.curve_fit() to find the optimized values of a, b, c.
 
     Preconditions:
         - len(data_x) == len(data_y)
 
-    Sample usage refer to test_quadratic_model().
+    Sample usage refer to test_fit_quadratic().
     """
     optimized_parameters = scipy.optimize.curve_fit(quadratic, data_x, data_y)
     a, b, c = optimized_parameters[0]
@@ -70,7 +70,7 @@ def fit_inverse(data_x: List[float], data_y: List[float]) -> Tuple[float, float,
     Preconditions:
         - len(data_x) == len(data_y)
 
-    Sample usage refer to test_inverse_model().
+    Sample usage refer to test_fit_inverse().
     """
     optimized_parameters = scipy.optimize.curve_fit(inverse, data_x, data_y)
     a, b = optimized_parameters[0]
@@ -90,7 +90,7 @@ def fit_logarithm(data_x: List[float], data_y: List[float]) -> Tuple[float, floa
     Preconditions:
         - len(data_x) == len(data_y)
 
-    Sample usage refer to test_inverse_model().
+    Sample usage refer to test_fit_logarithm().
     """
     optimized_parameters = scipy.optimize.curve_fit(logarithm, data_x, data_y)
     a, b = optimized_parameters[0]
@@ -104,9 +104,9 @@ def fit_periodic(data_x: List[float], data_y: List[float],
                  test_range: Tuple[float, float]) \
         -> Tuple[float, float, float, float, float, float, float, float, float]:
     """Return the optimized values of a, b, c, d, e in the periodic line equation
-    y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e for fitting the provided data, and
-    the root mean squared error of the model.(note: the term d * x is used for compensating
-    increasing/decreasing trend of the overall data).
+    y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e for fitting the
+    provided data, and the root mean squared error of the model.(note: the term d * x
+    is used for compensating increasing/decreasing trend of the overall data).
 
     data_x is the list of x coordinates of the data points and data_y is the corresponding
     list of y coordinates of the data points.
@@ -120,8 +120,6 @@ def fit_periodic(data_x: List[float], data_y: List[float],
 
     Preconditions:
         - len(data_x) == len(data_y)
-
-    Sample usage refer to test_periodic_model().
     """
     a0 = initial_guess[0]
     b0 = initial_guess[1]
@@ -275,8 +273,10 @@ def logarithm(x: float, a: float, b: float) -> float:
     return a * np.log(x) + b
 
 
-def periodic(x: float, a: float, b: float, c: float, m: float, n: float, p: float, d: float, e: float) -> float:
-    """Return the y value according to the equation y = a * (cos(b * (x - c))) + d * x + e"""
+def periodic(x: float, a: float, b: float, c: float, m: float, n: float,
+             p: float, d: float, e: float) -> float:
+    """Return the y value according to the equation
+    y = a * cos(b * (x - c)) + m * cos(n * (x - p)) + d * x + e"""
     return a * np.cos(b * (x - c)) + m * np.cos(n * (x - p)) + d * x + e
 
 
@@ -302,8 +302,8 @@ def test_fit_exponential() -> None:
     Test if the optimized coefficients calculated by fit_linear() using the generated
     data is close the the chosen coefficients."""
 
-    # test 1, generated data in the form: y = 0.2 * (2 ** x) - 1:
-    a_true, b_true, c_true = 0.2, 2, -1
+    # test 1, generated data in the form: y = 0.2 * (1.2 ** x) - 1:
+    a_true, b_true, c_true = 0.2, 1.2, -1
     data = generate_exponential_data(a_true, b_true, c_true)
     a, b, c, _ = fit_exponential(data[0], data[1])
     assert math.isclose(a, a_true, abs_tol=1e-05) and math.isclose(b, b_true, abs_tol=1e-05) \
@@ -373,49 +373,17 @@ def test_fit_logarithm() -> None:
     assert math.isclose(a, a_true, abs_tol=1e-05) and math.isclose(b, b_true, abs_tol=1e-05)
 
 
-def test_fit_periodic() -> None:
-    """Generate 2d data in the form y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e, according
-    to chosen coefficients; then, generate the same type of data according to the optimized
-    coefficients calculated by fit_periodic() using the already generated data. Test if both
-    data are close to each other.
-
-    (We are not testing if the optimized coefficients are close to the chosen coefficients
-    because the fit is periodic, meaning the optimized coefficients and the chosen coefficients
-    could be different but still generate the same data)
-    """
-
-    # test 1, generated data in the form: y = 10 * (cos(2 * (x - 1))) + 3 * (cos(0.8 * (x - 2))) + 0.02 * x + 7:
-    a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true = 10, 2, 1, 3, 0.8, 2, 0.02, 7
-    data = generate_periodic_data(a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true)
-    a, b, c, m, n, p, d, e, _ = fit_periodic(data[0], data[1],
-                                             initial_guess=(9.8, 2.1, 1.1, 3.02, 0.88, 2, 0.021, 7.1),
-                                             test_range=(0.7, 1.3))
-    calculated_data = generate_periodic_data(a, b, c, m, n, p, d, e)
-    assert all(math.isclose(data[1][i], calculated_data[1][i], abs_tol=1e-05)
-               for i in range(len(data[1])))
-
-    # test 2, generated data in the form: y = -2 * (cos(-3 * x)) + 0.6 * (cos(2 * (x - 0.5))) - 0.3 * x + 10:
-    a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true = -2, -3, 0, 0.6, 2, 0.5, -0.3, 10
-    data = generate_periodic_data(a_true, b_true, c_true, m_true, n_true, p_true, d_true, e_true)
-    a, b, c, m, n, p, d, e, _ = fit_periodic(data[0], data[1],
-                                             initial_guess=(-2.1, -2.98, 0.1, 0.62, 2.2, 0.53, -0.31, 9.9),
-                                             test_range=(0.7, 1.3))
-    calculated_data = generate_periodic_data(a, b, c, m, n, p, d, e)
-    assert all(math.isclose(data[1][i], calculated_data[1][i], abs_tol=1e-05)
-               for i in range(len(data[1])))
-
-
 ################################################################################
 # Data generation functions for tests
 ################################################################################
 
 
 def generate_exponential_data(a: float, b: float, c: float) -> Tuple[List[float], List[float]]:
-    """Return a tuple where the first element is a list of x coordinates [0, 1, 2,...,50]
+    """Return a tuple where the first element is a list of x coordinates [-10, 1, 2,...,50]
     and the second element is a list of corresponding y coordinates such that
     y = a * (b ** x) + c."""
-    data_x = list(range(0, 51))
-    data_y = [exponential(x, a, b, c) for x in range(0, 51)]
+    data_x = list(range(-10, 51))
+    data_y = [exponential(x, a, b, c) for x in range(-10, 51)]
     return (data_x, data_y)
 
 
@@ -440,19 +408,9 @@ def generate_inverse_data(a: float, b: float) -> Tuple[List[float], List[float]]
 def generate_logarithm_data(a: float, b: float) -> Tuple[List[float], List[float]]:
     """Return a tuple where the first element is a list of x coordinates [1, 2, 3,...,50]
     and the second element is a list of corresponding y coordinates such that
-    y = a / x + b."""
+    y = a * log(x) + b."""
     data_x = list(range(1, 51))
-    data_y = [inverse(x, a, b) for x in range(1, 51)]
-    return (data_x, data_y)
-
-
-def generate_periodic_data(a: float, b: float, c: float, m: float, n: float, p: float, d: float, e: float) \
-        -> Tuple[List[float], List[float]]:
-    """Return a tuple where the first element is a list of x coordinates [0, 1, 2,...,50]
-    and the second element is a list of corresponding y coordinates such that
-    y = a * (cos(b * (x - c))) + m * (cos(n * (x - p))) + d * x + e"""
-    data_x = list(range(0, 51))
-    data_y = [periodic(x, a, b, c, m, n, p, d, e) for x in range(0, 51)]
+    data_y = [logarithm(x, a, b) for x in range(1, 51)]
     return (data_x, data_y)
 
 
@@ -462,7 +420,7 @@ if __name__ == '__main__':
         'extra-imports': ['scipy.optimize', 'numpy', 'math', 'python_ta.contracts'],
         'allowed-io': [],
         'max-line-length': 100,
-        'disable': ['R1705', 'C0200']
+        'disable': ['R1705', 'C0200', 'R0914', 'R0912', 'R0915', 'R0913']
     })
 
     import python_ta.contracts
