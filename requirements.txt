@@ -1,0 +1,10 @@
+Python Libraries needed:
+ - pandas
+ - matplotlib
+ - numpy
+ - scipy
+ - datetime
+ - math
+ - typing
+
+ 
